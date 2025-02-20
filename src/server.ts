@@ -1,11 +1,14 @@
 import { fastifyCors } from '@fastify/cors'
+import { fastifySwagger } from '@fastify/swagger'
+import { fastifySwaggerUi } from '@fastify/swagger-ui'
 import { fastify } from 'fastify'
 import {
   type ZodTypeProvider,
+  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
-import { z } from 'zod'
+import { subscribeToEvent } from './routes/subscribe-to-event'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -16,29 +19,21 @@ app.register(fastifyCors, {
   origin: true,
 })
 
-app.post(
-  '/subscriptions',
-  {
-    schema: {
-      body: z.object({
-        fullname: z.string().min(3, 'Digite o nome completo'),
-        email: z.string().email('Digite um email válido'),
-      }),
-      response: {
-        201: z.object({
-          fullname: z.string(),
-        }),
-      },
+app.register(fastifySwagger, {
+  openapi: {
+    info: {
+      title: 'devStage API',
+      version: '0.0.1',
     },
   },
-  async (request, reply) => {
-    const { fullname, email } = request.body
+  transform: jsonSchemaTransform,
+})
 
-    return reply.status(201).send({
-      fullname,
-    })
-  }
-)
+app.register(fastifySwaggerUi, {
+  routePrefix: '/docs',
+})
+
+app.register(subscribeToEvent)
 
 app
   .listen({
