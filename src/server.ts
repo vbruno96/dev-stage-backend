@@ -8,6 +8,7 @@ import {
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
+import { env } from './env'
 import { subscribeToEvent } from './routes/subscribe-to-event'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
@@ -37,8 +38,8 @@ app.register(subscribeToEvent)
 
 app
   .listen({
-    port: 6969,
+    port: env.PORT,
   })
   .then(() => {
-    console.log('🚀 Server is running')
+    console.log(`🚀 Server is running on port: ${env.PORT}`)
   })
